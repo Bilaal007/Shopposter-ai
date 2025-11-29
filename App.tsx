@@ -899,7 +899,7 @@ const App: React.FC = () => {
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       const safeTitle = (config.title || 'poster').replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 30);
-      const fileName = `shopposter-${safeTitle}-${Date.now()}.png`;
+      const fileName = `shop-poster-ai-${safeTitle}-${Date.now()}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
       return { dataUrl, file, config: finalConfig };
   };
@@ -915,7 +915,7 @@ const App: React.FC = () => {
 
           if (Capacitor.isNativePlatform()) {
               const safeTitle = (config.title || 'poster').replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 30);
-              const fileName = `shopposter-${safeTitle}-${Date.now()}.png`;
+              const fileName = `shop-poster-ai-${safeTitle}-${Date.now()}.png`;
               
               try {
                   const savedFile = await Filesystem.writeFile({
@@ -925,7 +925,7 @@ const App: React.FC = () => {
                   });
 
                   await Share.share({
-                      title: 'ShopPoster',
+                      title: 'Shop Poster AI',
                       files: [savedFile.uri]
                   });
                   showNotification("Shared successfully!", 'success');
@@ -945,7 +945,7 @@ const App: React.FC = () => {
                   if (navigator.share) {
                       await navigator.share({
                           files: [file],
-                          title: 'ShopPoster'
+                          title: 'Shop Poster AI'
                       });
                       showNotification("Shared successfully!", 'success');
                   } else {
@@ -975,7 +975,7 @@ const App: React.FC = () => {
       
       if (Capacitor.isNativePlatform()) {
           const safeTitle = (config.title || 'poster').replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 30);
-          const fileName = `shopposter-${safeTitle}-${Date.now()}.png`;
+          const fileName = `shop-poster-ai-${safeTitle}-${Date.now()}.png`;
           
           try {
               const savedFile = await Filesystem.writeFile({
@@ -1224,7 +1224,7 @@ const App: React.FC = () => {
     const openShareSheet = async () => {
       if (navigator.share) {
         try {
-          await navigator.share({ title: 'ShopPoster AI', text: message, url: referralLink });
+          await navigator.share({ title: 'Shop Poster AI', text: message, url: referralLink });
           return true;
         } catch (error) {
           if ((error as Error)?.name === 'AbortError') {
@@ -1422,7 +1422,7 @@ const App: React.FC = () => {
                   <button onClick={() => setReferralOpen(false)} className="absolute top-4 right-4 p-2 bg-white/5 rounded-full hover:bg-white/10 z-10"><X className="w-4 h-4 text-neutral-400" /></button>
                   <div className="w-20 h-20 bg-gold-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-gold-500/30 animate-pulse-slow"><Gift className="w-10 h-10 text-gold-500" /></div>
                   <h2 className="text-2xl font-black text-white uppercase mb-2">NEVER PAY FOR AI</h2>
-                  <p className="text-neutral-400 text-sm mb-8 leading-relaxed">Invite your business friends to use ShopPoster. Get <span className="text-gold-500 font-bold">+3 Free Credits</span> instantly for every share.</p>
+                  <p className="text-neutral-400 text-sm mb-8 leading-relaxed">Invite your business friends to use Shop Poster AI. Get <span className="text-gold-500 font-bold">+3 Free Credits</span> instantly for every share.</p>
                   <button onClick={handleReferralShare} className="w-full bg-gold-500 text-black font-black py-4 rounded-xl uppercase tracking-wide shadow-gold-glow flex items-center justify-center gap-2 active:scale-95 transition-transform">
                       <MessageCircle className="w-5 h-5 fill-green-600 text-green-600" /> <span className="text-black">Share on WhatsApp</span>
                   </button>
@@ -1438,7 +1438,7 @@ const App: React.FC = () => {
         <div className="absolute top-[-10%] right-[-10%] w-[300px] h-[300px] bg-gold-500/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full z-10">
             <div className="mb-8 flex justify-center"><BrainCameraLogo size="w-24 h-24" /></div>
-            <h1 className="text-4xl font-black text-white mb-2 tracking-tighter uppercase text-center">Welcome to <br/><span className="text-gold-500">ShopPoster</span></h1>
+            <h1 className="text-4xl font-black text-white mb-2 tracking-tighter uppercase text-center">Welcome to <br/><span className="text-gold-500">Shop Poster AI</span></h1>
             <p className="text-neutral-400 mb-8 leading-relaxed text-center">Let's set up your brand identity so every poster is ready to post instantly.</p>
             
             <div className="space-y-6">

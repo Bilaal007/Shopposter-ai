@@ -1,6 +1,6 @@
 {
-  "name": "ShopPoster AI",
-  "short_name": "ShopPoster",
+  "name": "Shop Poster AI",
+  "short_name": "Shop Poster AI",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
