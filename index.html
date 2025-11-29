@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>ShopPoster AI</title>
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ShopPoster AI" />
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: {
+                300: '#FFF580',
+                400: '#FFEB33',
+                500: '#FFE600', // Electric Yellow
+                600: '#CCB800',
+                700: '#998A00',
+              },
+              dark: {
+                950: '#000000', // Void
+                900: '#080808', // Deep background
+                800: '#121212', // Surface
+                750: '#1A1A1A', // Hover surface
+                700: '#27272A', // Borders
+                600: '#3F3F46', // Muted text
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+              sport: ['Anton', 'sans-serif'],
+              luxury: ['Playfair Display', 'serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            boxShadow: {
+              'gold-glow': '0 0 20px rgba(255, 230, 0, 0.15)',
+              'gold-glow-lg': '0 0 30px rgba(255, 230, 0, 0.25)',
+            },
+            animation: {
+              'bounce-in': 'bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'slide-up': 'slide-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              'jelly': 'jelly 2s infinite',
+              'fade-in': 'fade-in 0.3s ease-out forwards',
+              'scan-up': 'scan-up 3s linear infinite',
+            },
+            keyframes: {
+              'bounce-in': {
+                '0%': { transform: 'scale(0.95)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              'slide-up': {
+                '0%': { transform: 'translateY(100%)' },
+                '100%': { transform: 'translateY(0)' },
+              },
+              'jelly': {
+                '0%, 100%': { transform: 'scale(1, 1) translateY(0)' },
+                '10%': { transform: 'scale(1.1, 0.9) translateY(0)' },
+                '30%': { transform: 'scale(0.9, 1.1) translateY(-10px) rotate(-5deg)' },
+                '50%': { transform: 'scale(1.05, 0.95) translateY(0) rotate(5deg)' },
+                '57%': { transform: 'scale(1, 1) translateY(-2px)' },
+                '64%': { transform: 'scale(1, 1) translateY(0)' },
+              },
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              'scan-up': {
+                '0%': { top: '100%', opacity: '0' },
+                '10%': { opacity: '1' },
+                '90%': { opacity: '1' },
+                '100%': { top: '-20%', opacity: '0' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+        --sal: env(safe-area-inset-left, 0px);
+        --sar: env(safe-area-inset-right, 0px);
+      }
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
+      }
+
+      html {
+        height: 100%;
+        width: 100%;
+        background-color: #000000;
+      }
+
+      body { 
+        width: 100%;
+        height: 100%;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+        color: #ffffff;
+        
+        /* Native App Feel */
+        overflow: hidden; /* Prevent global scroll */
+        overscroll-behavior: none; /* Stop rubber-banding */
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        touch-action: manipulation;
+      }
+
+      /* Hide scrollbar globally but allow scroll functionality in containers */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      input, select, textarea {
+        color-scheme: dark;
+        user-select: text;
+        -webkit-user-select: text;
+      }
+      
+      /* Safe Area Utilities */
+      /* We use !important to override Tailwind resets that might be 0px */
+      .pt-safe { padding-top: max(60px, var(--sat)) !important; }
+      .pb-safe { padding-bottom: max(20px, var(--sab)) !important; }
+      .pl-safe { padding-left: var(--sal) !important; }
+      .pr-safe { padding-right: var(--sar) !important; }
+      .my-safe { margin-top: var(--sat) !important; margin-bottom: var(--sab) !important; }
+      .top-safe { top: var(--sat) !important; }
+      .bottom-safe { bottom: var(--sab) !important; }
+      
+      /* Button Active States for Touch */
+      button:active {
+        opacity: 0.7;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "qrcode.react": "https://aistudiocdn.com/qrcode.react@^4.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@capacitor/camera": "https://aistudiocdn.com/@capacitor/camera@^7.0.2",
+    "@capacitor/status-bar": "https://aistudiocdn.com/@capacitor/status-bar@^7.0.0",
+    "@capacitor/cli": "https://aistudiocdn.com/@capacitor/cli@^7.4.4",
+    "@capacitor/share": "https://aistudiocdn.com/@capacitor/share@^7.0.2",
+    "@capacitor/filesystem": "https://aistudiocdn.com/@capacitor/filesystem@^7.0.0",
+    "@capacitor/core": "https://aistudiocdn.com/@capacitor/core@^7.0.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="selection:bg-gold-500 selection:text-black">
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

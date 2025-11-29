@@ -1,0 +1,8 @@
+{
+  "name": "ShopPoster AI",
+  "description": "AI-powered e-commerce tool. Create payment links, WhatsApp order forms, and conversion-optimized marketing cards with smart placement.",
+  "requestFramePermissions": [
+    "camera",
+    "internet"
+  ]
+}
