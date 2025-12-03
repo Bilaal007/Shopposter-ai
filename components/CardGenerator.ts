@@ -1,7 +1,10 @@
 
-import { CardConfig, QRCodePlacement, HeadlinePlacement, LinkType } from "../types";
+import { CardConfig, QRCodePlacement, HeadlinePlacement, LinkType, LayoutMode, PlatformType, AnchorPoint } from "../types";
+import { getCanvasDimensions, getAbsolutePosition, ensureSafePosition } from "../utils/layoutUtils";
+import { addNoiseTexture, wrapText, roundRect } from "../utils/canvasUtils";
 
-const SAFE_MARGIN = 60; // Safety zone to ensure text never hits the edge
+// Safety zone to ensure text never hits the edge (in pixels)
+const SAFE_MARGIN = 60;
 
 /**
  * Renders the product card to a hidden canvas and returns the Data URL.
@@ -11,21 +14,28 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
 
-  // Card Dimensions (Portrait Mobile Ratio 1080x1350)
-  const width = 1080;
-  const height = 1350;
+  // Get canvas dimensions based on layout mode
+  const { width, height } = getCanvasDimensions(config.layoutMode || LayoutMode.FEED);
   canvas.width = width;
   canvas.height = height;
+  
+  // Store dimensions in config for reference
+  config.canvasWidth = width;
+  config.canvasHeight = height;
 
   // Font Mapping - Added Emoji Support
   const fontFamily = config.fontFamily || 'Inter';
   const emojiFonts = '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
   
-  const titleFontSize = 96;
+  // Dynamic font sizes based on layout mode
+  const isStory = config.layoutMode === LayoutMode.STORY;
+  const isSquare = config.layoutMode === LayoutMode.SQUARE;
+  
+  const titleFontSize = isStory ? 84 : (isSquare ? 88 : 96);
   const titleFont = `bold ${titleFontSize}px ${fontFamily}, ${emojiFonts}, sans-serif`;
-  const ctaFont = `bold 42px Inter, ${emojiFonts}, sans-serif`;
-  const priceFont = `bold 72px ${fontFamily}, ${emojiFonts}, sans-serif`;
-  const badgeFont = `bold 32px Inter, ${emojiFonts}, sans-serif`;
+  const ctaFont = `bold ${isStory ? 38 : 42}px Inter, ${emojiFonts}, sans-serif`;
+  const priceFont = `bold ${isStory ? 64 : 72}px ${fontFamily}, ${emojiFonts}, sans-serif`;
+  const badgeFont = `bold ${isStory ? 28 : 32}px Inter, ${emojiFonts}, sans-serif`;
 
   // --- 1. Background ---
   // Use Linear Gradient for the base
@@ -34,6 +44,11 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
   gradient.addColorStop(1, config.backgroundGradient?.[1] || '#000000');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
+  
+  // Add subtle noise texture for better visual quality
+  if (config.backgroundGradient) {
+    addNoiseTexture(ctx, width, height);
+  }
 
   // Load Main Image
   const img = new Image();
@@ -71,7 +86,7 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
       }));
   }
 
-  const isOverlayMode = config.placement !== QRCodePlacement.CARD_BOTTOM;
+  const isOverlayMode = config.placement && config.placement !== QRCodePlacement.CARD_BOTTOM;
 
   // Helper: Split text into lines that fit maxWidth
   const getLines = (text: string, font: string, maxWidth: number) => {
@@ -124,20 +139,9 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
     ctx.fillRect(0, height - 700, width, 700);
 
     // Badge (Top Left or Top Right)
-    if (config.badgeText) {
-        const isRight = config.badgePosition === 'right';
-        // If right, calculate X based on text width
-        let badgeX = SAFE_MARGIN;
-        
-        if (isRight) {
-             ctx.font = badgeFont;
-             const metrics = ctx.measureText(config.badgeText.toUpperCase());
-             // Approx width of badge box = text + padding
-             const badgeBoxW = metrics.width + 60; 
-             badgeX = width - badgeBoxW - SAFE_MARGIN;
-        }
-        
-        drawBadge(ctx, config.badgeText, badgeX, SAFE_MARGIN, config.badgeColor || config.primaryColor, badgeFont);
+    if (config.badgeText && config.badgePosition) {
+        const isRight = config.badgePosition.anchor === AnchorPoint.TOP_RIGHT || 
+                       config.badgePosition.anchor === AnchorPoint.BOTTOM_RIGHT;
     }
 
     // --- FLOATING LOGO (Poster Mode) ---
@@ -237,7 +241,9 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
     // Calculate Top Offset based on Badge Presence to prevent overlap
     // If badge exists and we are at top, push down.
     const badgeExists = !!config.badgeText;
-    const badgeIsLeft = config.badgePosition !== 'right';
+    const badgeIsLeft = config.badgePosition?.anchor === AnchorPoint.TOP_LEFT || 
+                       config.badgePosition?.anchor === AnchorPoint.CENTER_LEFT ||
+                       config.badgePosition?.anchor === AnchorPoint.BOTTOM_LEFT;
     
     // RECALIBRATED CONSTANTS to match App Preview visual proportions
     // Preview uses css 'top-20' (80px). 80px * 3 = 240px base.
@@ -326,16 +332,24 @@ export const generateCardImage = async (config: CardConfig, qrCanvas: HTMLCanvas
     ctx.globalCompositeOperation = 'source-over';
 
     // 3. Badge (Top Corner of Card)
-    if (config.badgeText) {
-        let badgeX = SAFE_MARGIN;
-        if (config.badgePosition === 'right') {
-             ctx.font = badgeFont;
-             const metrics = ctx.measureText(config.badgeText.toUpperCase());
-             const badgeBoxW = metrics.width + 60; 
-             badgeX = width - badgeBoxW - SAFE_MARGIN;
-        }
-        // Draw badge slightly overlapping the image/card boundary
-        drawBadge(ctx, config.badgeText, badgeX, targetHeight - 40, config.badgeColor || config.primaryColor, badgeFont);
+    if (config.badgeText && config.badgePosition) {
+      const position = ensureSafePosition(
+        config.badgePosition,
+        200, // Estimated badge width
+        60,  // Estimated badge height
+        width,
+        height,
+        config.safeZone
+      );
+      
+      if (position) {
+        const { x, y } = getAbsolutePosition(
+          position,
+          width,
+          height
+        );
+        drawBadge(ctx, config.badgeText, x, y, config.badgeColor || config.primaryColor, badgeFont);
+      }
     }
 
     // --- FLOATING LOGO (Card Mode) ---
@@ -757,16 +771,4 @@ function drawBadge(ctx: CanvasRenderingContext2D, text: string, x: number, y: nu
     ctx.textBaseline = 'middle';
     ctx.fillText(text.toUpperCase(), x + (w/2), y + (h/2) + 2);
     ctx.restore();
-}
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  if (w < 2 * r) r = w / 2;
-  if (h < 2 * r) r = h / 2;
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
 }

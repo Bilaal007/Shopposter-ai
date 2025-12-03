@@ -11,6 +11,45 @@ export enum AppState {
   HISTORY = 'HISTORY'
 }
 
+export enum LayoutMode {
+  SQUARE = 'square',    // 1:1 (1080x1080)
+  FEED = 'feed',        // 4:5 (1080x1350)
+  STORY = 'story'       // 9:16 (1080x1920)
+}
+
+export enum PlatformType {
+  TIKTOK = 'tiktok',
+  REELS = 'reels',
+  NONE = 'none'
+}
+
+export enum AnchorPoint {
+  TOP_LEFT = 'top-left',
+  TOP_CENTER = 'top-center',
+  TOP_RIGHT = 'top-right',
+  CENTER_LEFT = 'center-left',
+  CENTER = 'center',
+  CENTER_RIGHT = 'center-right',
+  BOTTOM_LEFT = 'bottom-left',
+  BOTTOM_CENTER = 'bottom-center',
+  BOTTOM_RIGHT = 'bottom-right'
+}
+
+export interface Position {
+  x: number; // 0-1 representing percentage of width
+  y: number; // 0-1 representing percentage of height
+  anchor: AnchorPoint;
+  offsetX?: number; // pixels to offset from anchor
+  offsetY?: number; // pixels to offset from anchor
+}
+
+export interface SafeZone {
+  top: number;    // percentage (0-1)
+  right: number;  // percentage (0-1)
+  bottom: number; // percentage (0-1)
+  left: number;   // percentage (0-1)
+}
+
 export enum QRCodePlacement {
   CARD_BOTTOM = 'card-bottom', // Standard layout
   TOP_LEFT = 'top-left',
@@ -118,14 +157,34 @@ export interface UserProfile {
   referredRecipients: string[];
 }
 
+export interface MarketingCopy {
+  caption: string;
+  hashtags: string[];
+  platform: PlatformType;
+  tone: 'casual' | 'professional' | 'playful' | 'urgent';
+  characterCount: number;
+}
+
 export interface CardConfig {
   id: string;
   timestamp: number;
+  platform: PlatformType;
   imageSrc: string;
-  originalImageSrc?: string; // Keep track of the original upload
+  originalImageSrc?: string;
+  
+  // Layout Configuration
+  layoutMode?: LayoutMode;
+  safeZone?: SafeZone;
+  
+  // Element Positions
+  headlinePosition?: Position;
+  ctaPosition?: Position;
+  qrPosition?: Position;
+  logoPosition?: Position;
+  badgePosition?: Position;
+  
   linkType: LinkType;
-  targetUrl: string; // The final computed URL
-  // Metadata for link builders
+  targetUrl: string;
   linkData?: {
     paypalUser?: string;
     paypalAmount?: string;
@@ -143,13 +202,11 @@ export interface CardConfig {
   ctaColor?: string; // New: Custom CTA Text Color
   price?: string;
   priceColor?: string; // New: Custom Price Color
-  badgeText?: string; // New
-  badgeColor?: string; // New: Custom Badge Background Color
-  badgePosition?: 'left' | 'right'; // New: Toggle badge side
+  badgeText?: string;
+  badgeColor?: string; // Custom Badge Background Color
   showQr: boolean;
   showActionCard?: boolean; // New: Toggle the whole pill in poster mode
   showFloatingLogo?: boolean; // New: Toggle floating brand logo
-  logoPosition?: { x: number, y: number }; // New: X/Y coordinates for floating logo
   
   detailBubbles?: DetailBubble[]; // New: Array of detail bubbles (max 3)
 
@@ -162,4 +219,11 @@ export interface CardConfig {
   qrLogoSrc?: string;
   logoSrc?: string; // Custom brand logo for the action button
   overlayYOffset?: number; // Vertical offset for the overlay content (Poster mode)
+  
+  // Layout dimensions (auto-calculated, read-only)
+  canvasWidth?: number;
+  canvasHeight?: number;
+  
+  // AI-Generated Marketing Content
+  marketingCopy?: MarketingCopy;
 }
